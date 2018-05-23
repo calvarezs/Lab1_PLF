@@ -1,0 +1,10 @@
+const zero = 0 ,pi=3, euler = 2;
+var i,j,j; 
+
+procedure sumador; var sum1, sum2, res;
+sumador:= sum1 + sum2
+;
+
+
+
+.
