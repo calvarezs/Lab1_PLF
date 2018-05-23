@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>  
-#include <string.h> 
+#include <string.h>
 #include <math.h>
 
 //Definicion de tipo de dato bool
@@ -46,18 +46,19 @@ int EncontrarErroresParametros( int argc, char **argv );
 ListaPalabras* ObtenerTextoEntrada(char* NombreArchivoEntrada);
 ////////RevisarProgramaSintaxisPL.h//////
 void RevisarPrograma(ListaPalabras* listaPalabras,char* nombreArchivoSalida);
-int EsIdentificador(Palabra* palabra);
-int EsNumero(Palabra* palabra);
+int EsIdentificador(char* palabraActual);
+int EsNumero(char* palabraActual);
 ////////////////////////////////////////////
-
+int strposstr(char* s1, char* s2);
 //////////////////////////////////////////////////////main.c/////////////////////////////////////////////////////
 //Bloque principal del programa
 int main ( int argc, char **argv ) {
     
+    printf("Iniciando Programa.\n");
     ListaPalabras* ContenidoArchivoEntrada;
 	ListaPalabras* ProgramaRevisado;
     int entradaInvalida;
-     
+
     //Revisar parámetros de entrada
     entradaInvalida = EncontrarErroresParametros(argc,argv); 
     if(entradaInvalida == TRUE)
@@ -65,15 +66,21 @@ int main ( int argc, char **argv ) {
         return 1;
     }
  
-	//Leer archivo de entrada 
-	ContenidoArchivoEntrada = ObtenerTextoEntrada(argv[1]); 
-	
+ 	printf("Leyendo archivo entrada.\n");
+	//Leer archivo de entrada
+	ContenidoArchivoEntrada = ObtenerTextoEntrada(argv[1]);
+
+	printf("Generar archivo resultante.\n");
 	//Generar resultado
 	RevisarPrograma(ContenidoArchivoEntrada,argv[2]);
 	
+	printf("Cerrando programa.\n");
 	//Liberar memoria utilizada
 	AnularListaPalabras(ContenidoArchivoEntrada);
+	
 	//Fin de programa
+	printf("Fin de programa.\nPresione cualquier tecla para continuar\n");
+	getchar();
 	return 0;
 }
 
@@ -85,20 +92,17 @@ int EncontrarErroresParametros( int argc, char **argv )
 {
     //Revisando parametros iniciales
 	if(argc == 1)
-	{
-		printf("1");
+	{ 
 		printf("Error: Faltan par%cmetros en la l%cnea de comandos.\nUso: lexico.exe archivo_entrada archivo_salida\n",160,161);
 		return 1;
 	}
 	else if(argc == 2)
-	{
-		printf("2");
+	{ 
 		printf("Error: Falta par%cmetro en la l%cnea de comandos.\nUso: lexico.exe archivo_entrada archivo_salida\n",160,161);
 		return 1;
 	}
 	else if(argc != 3) 
-	{
-		printf("3");
+	{ 
 		printf("Error: Demasiados par%cmetros en la l%cnea de comandos.\nUso: lexico.exe archivo_entrada archivo_salida\n",160,161);
 		return 1;
 	}
@@ -183,44 +187,53 @@ ListaPalabras* ObtenerTextoEntrada(char* NombreArchivoEntrada)
 	FILE* archivo;
 	int posLetra;
 	int posLinea;
-	
+
 	//Se inicia lista palabras
 	listaResultado = CrearListaPalabras();
-	
+
 	//Se inicia el archivo
 	archivo = fopen(NombreArchivoEntrada, "r");
-	
+
 	//Para cada letra leida se revisa que sea valida
-	palabra = (char *) malloc(sizeof(char)); 
-	
+	palabra = (char *) malloc(sizeof(char));
+
 	posLetra = -1;
 	posLinea = 1;
 	while (!feof(archivo))
 	{
 		//Obtengo una letra del archivo de texto
 		letra = (char)fgetc(archivo);
-		
+		if(feof(archivo) && posLetra == -1 && posLinea == 1)
+		{
+		    printf("El archivo se encuentra en blanco.\n");
+		} 
 		//Si la letra leida es letra o numero añadir a la palabra final
 		if( isalnum( letra ) && letra < 127 )
-		{
+		{ 
 			//Si la palabra comienza con un numero y se actualiza una letra separar en dos palabras
 			if(posLetra!=-1 && isdigit(palabra[0]) && isalpha(letra))
-			{
+			{ 
 				palabra[posLetra+1] = '\0';
-				InsertarPalabra(listaResultado, palabra, posLinea);
+				InsertarPalabra(listaResultado, palabra, posLinea); 
 				palabra = (char *) realloc(palabra, 2*sizeof(char) );
 				palabra[0] = letra;
 				palabra[1] = '\0';
+				posLetra = -1;
 			}
 			//En caso contrario seguir actualizando la nueva palabra
 			posLetra++;	
 			palabra = (char *) realloc(palabra, (posLetra + 2)*sizeof(char) );  
 			palabra[posLetra] = letra;
-			palabra[posLetra+1] = '\0';
+			palabra[posLetra+1] = '\0'; 
 		}
 		//En caso contrario si es un simbolo cualquiera añadir como palabra de largo 1
 		else if ( isgraph(letra) )
-		{
+		{ 
+		    if(posLetra!=-1)
+		    {
+		        palabra[posLetra+1] = '\0';
+                InsertarPalabra(listaResultado, palabra, posLinea); 
+		    }
 			palabra = (char *) realloc(palabra, 2*sizeof(char) );
 			palabra[0] = letra;
 			palabra[1] = '\0';
@@ -234,14 +247,14 @@ ListaPalabras* ObtenerTextoEntrada(char* NombreArchivoEntrada)
 			if(posLetra >= 0)
 			{
 				InsertarPalabra(listaResultado, palabra, posLinea); 
-				palabra = (char *) realloc(palabra, sizeof(char) ); 
+				palabra = (char *) realloc(palabra, sizeof(char) );
 			}
 			if(letra == '\n')
-			{
+			{ 
 				posLinea ++;
 			}
 			posLetra = -1;
-		}
+		} 
 	} 
 	fclose(archivo);
 	return listaResultado;
@@ -255,119 +268,71 @@ void RevisarPrograma(ListaPalabras* listaPalabras,char* nombreArchivoSalida)
 	//Se definen todos los terminales del lenguaje a revisar
 	char* listaTerminales[] = {"const","var","procedure","call","begin","end","if","then","while","do","odd"};
 	int nRestoTerminales = 11;
-	char* listaSimbolosSimples[] ={".",",","=",";","+","-","*","/","(",")","#","<",">"}; 
+	char* listaSimbolosSimples[] ={"=",".",",",";","+","-","*","/","(",")","#","<",">"}; 
 	int nSimbolosSimples = 13;
 	char* listaSimbolosDobles[] ={":","<",">"};
 	int nSimbolosDobles = 3;
 	
-	int i, largo, posMinima, posActual, palabraEncontrada, casoEncontrado;
-	char* contenidoPalabraActual,token,strActual;
-	
-	//Para cada palabra
+	int palabraEncontrada,i;
 	Palabra* palabraActual = listaPalabras->Cabeza;
+	char* posibleTerminal;
+
 	while(palabraActual != NULL)
 	{
-		/*debug*/printf("Palabra actual: |%s|\n",palabraActual->Contenido);
-		casoEncontrado = FALSE;
-		//Si la palabra esta en la lista de simbolos dobles
-		for(i=0;i<nSimbolosDobles;i++)
+		palabraEncontrada = FALSE;
+		posibleTerminal = palabraActual->Contenido;
+		//Ver si la palabra es un terminal de la lista terminales
+		i=0;
+		while(palabraEncontrada == FALSE && i < nRestoTerminales)
+		{ 
+			if(strcmp(posibleTerminal,listaTerminales[i])==0)
+			{ 
+				palabraEncontrada = TRUE;
+				fprintf(archivoSalida,"%s\n",posibleTerminal);	 
+			}
+			i++;
+		}
+		//caso contrario (cc) ver si la palabra es terminal doble de la lista de simbolos dobles
+		i=0;
+		while(palabraEncontrada == FALSE && i < nSimbolosDobles)
 		{
-			/*debug*/printf("Comparo con: |%s|\n",listaSimbolosDobles[i]);
-			if(casoEncontrado == FALSE && strcmp(palabraActual->Contenido,listaSimbolosDobles[i])==0)
+			if(strcmp(posibleTerminal,listaSimbolosDobles[i]))
 			{
 				if(palabraActual->Siguiente != NULL && strcmp(palabraActual->Siguiente->Contenido,"=")==0)
-				{
-					/*debug*/printf("Es doble\n");
-					fprintf(archivoSalida,"%s=\n",palabraActual->Contenido);
-					palabraActual = palabraActual->Siguiente->Siguiente;
-					casoEncontrado = TRUE;					
+				{ 
+					palabraEncontrada = TRUE;
+					fprintf(archivoSalida,"%s=\n",posibleTerminal);	 
+					palabraActual = palabraActual->Siguiente;	
 				}
 			}
+			i++;
 		}
-		//En caso contrario si la palabra esta en la lista de simbolos simples
-		/*debug*/printf("Revisando\n");
-		if(casoEncontrado == FALSE)
+		//cc ver si es simbolo simple 
+		i=0;
+		while(palabraEncontrada == FALSE && i < nSimbolosSimples)
 		{
-			for(i=0;i<nSimbolosSimples;i++)
+			if(strcmp(posibleTerminal,listaSimbolosSimples[i])==0)
 			{ 
-				/*debug*/printf("Comparo con: |%s|\n",listaSimbolosSimples[i]);
-				if(casoEncontrado == FALSE  && strcmp(palabraActual->Contenido,listaSimbolosSimples[i])==0)
-				{
-					fprintf(archivoSalida,"%s\n",palabraActual->Contenido);
-					palabraActual = palabraActual->Siguiente;
-					casoEncontrado = TRUE;					
-				}
+				palabraEncontrada = TRUE;
+				fprintf(archivoSalida,"%s\n",posibleTerminal);	 
 			}
+			i++;
 		}
-		//En caso contrario
-		if(casoEncontrado == FALSE)
-		{
-			//Para cada terminal en lista terminales
-			posMinima = 999999999;
-			palabraEncontrada = -1;
-			contenidoPalabraActual = palabraActual->Contenido; 
-			/*debug*/printf("Revisando\n");
-			for(i=0;i<nRestoTerminales;i++)
-			{
-				/*debug*/printf("Comparo con: |%s|\n",listaTerminales[i]);
-				//Si la palabra contiene al terminal registrar la posicion relativa de esa palabra
-				if(strActual = strstr(contenidoPalabraActual,listaTerminales[i]) != NULL)
-				{
-					posActual = fabs((int)strActual-(int)contenidoPalabraActual)/sizeof(char);
-				}
-
-				//Si la posicion relativa es menor a la actual registrar esa palabra como la menor 
-				if(posActual<posMinima)
-				{
-					palabraEncontrada = i;
-					posMinima = posActual;
-				}
-			}
-			//Si existe a lo menos una palabra contenida 
-			if(palabraEncontrada>=0)
-			{
-				//se corta esa palabra
-				token = strtok( contenidoPalabraActual, listaTerminales[palabraEncontrada] );  
-				//Se utilizan las nuevas palabras como respuesta 
-				if(token!= contenidoPalabraActual)
-				{
-					if(EsIdentificador(token))
-					{
-						fprintf(archivoSalida,"IDENTIFICADOR\n");
-					}
-					else
-					{
-						fprintf(archivoSalida,"NUMERO\n");
-					}
-				}
-				fprintf(archivoSalida,"%s\n",listaTerminales[palabraEncontrada]);
-				//Se considera el resto como siguiente palabra
-				token = strtok( NULL, " " );
-				if(token != NULL)
-				{
-					strcpy(palabraActual->Contenido,token);
-				}
-				else
-				{
-					palabraActual = palabraActual->Siguiente;
-				}
-			}
-			else
-			{
-				palabraActual = palabraActual->Siguiente;
-			}
-		}
-		//Si no es ninguna entonces es identificador
-		if(EsIdentificador(palabraActual->Contenido))
-		{
-			fprintf(archivoSalida,"IDENTIFICADOR\n");
-		}
-		else
-		{
+		//cc ver si es numero
+		if(palabraEncontrada==FALSE && EsNumero(posibleTerminal)==TRUE)
+		{ 
 			fprintf(archivoSalida,"NUMERO\n");
 		}
-		palabraActual = palabraActual->Siguiente;
-	}			 
+		//devolver identificador 
+		else if(palabraEncontrada==FALSE && EsIdentificador(posibleTerminal)==TRUE)
+		{ 
+			fprintf(archivoSalida,"IDENTIFICADOR\n");	
+		}
+		if(palabraActual != NULL)
+		{
+			palabraActual = palabraActual->Siguiente;
+		}
+	}
 	fclose(archivoSalida);
 	return;
 }
@@ -377,11 +342,10 @@ void RevisarPrograma(ListaPalabras* listaPalabras,char* nombreArchivoSalida)
 //Funcion que verifica que la palabra a revisar es Identificador
 //Entrada: el identificador a revisar
 //Salida: un entero-> 1 para resultado verdadero, 0 para resultado falso
-int EsIdentificador(Palabra* palabra)
+int EsIdentificador(char* palabraActual)
 {
 	int i;
-	int largo = strlen(palabra->Contenido);
-	char* palabraActual = palabra->Contenido;
+	int largo = strlen(palabraActual); 
 	//Si la palabra no comienza con letra retornar falso
 	if(!isalpha(palabraActual[0]))
 	{
@@ -401,11 +365,10 @@ int EsIdentificador(Palabra* palabra)
 //Funcion que verifica que la palabra a revisar es numerica
 //Entrada: el numero a revisar
 //Salida: un entero-> 1 para resultado verdadero, 0 para resultado falso 
-int EsNumero(Palabra* palabra)
+int EsNumero(char* palabraActual)
 {
 	int i;
-	int largo = strlen(palabra->Contenido);
-	char* palabraActual = palabra->Contenido;
+	int largo = strlen(palabraActual); 
 	//Si todos los valores de la palabra son digitos retornar verdadero
 	for(i=0;i<largo;i++)
 	{
@@ -415,4 +378,23 @@ int EsNumero(Palabra* palabra)
 		}
 	}
 	return TRUE;
+}
+
+
+//Funcion que localiza en que posicion de un string se encuentra 
+int strposstr(char* s1, char* s2)
+{
+	char* pos = strstr(s1,s2);
+
+	int i, largo;
+	largo = strlen(s1);
+
+	for (i = 0; i < largo; ++i)
+	{
+		if(&s1[i]==pos)
+		{
+			return i;
+		}
+	}
+	return 99999999;
 }

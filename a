@@ -1,36 +1,3 @@
-CREATE OR REPLACE PROCEDURE scott.sample_proc1
-AUTHID DEFINER
-AS
-BEGIN
-   INSERT INTO detail_proc_insert
-      VALUES(1,'hello');
-END;
-/
-
-algooddvaconst varchar 554varichanif:=:<   +>:==#=$#
-
-CREATE PROCEDURE scott.sample_proc4
-IS
-   num_tables NUMBER;
-BEGIN
-   SELECT COUNT(*)
-   INTO num_tables
-   FROM dual;
-   IF num_tables < 1000 THEN
-      raise_application_error(-20101, 'Issuing message');
-   ELSE
-      NULL; -- 345comentario
-   END IF;
-END scott.sample_proc4;
-
-CREATE PROCEDURE scott.sample_proc5
-IS
-   num_tables NUMBER;
-   dual_rec dual%ROWTYPE;
-   my_D emp.ename%TYPE;
-BEGIN
-   SELECT COUNT(*) INTO num_tables
-      FROM dual;
-END;
-/
-
+"const","var","procedure","call","begin","end","if","then","while","do","odd"
+"=",".",",",";","+","-","*","/","(",")","#","<",">"}; 
+":=","<=",">="
