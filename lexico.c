@@ -288,7 +288,7 @@ void RevisarPrograma(ListaPalabras* listaPalabras,char* nombreArchivoSalida)
 			if(strcmp(posibleTerminal,listaTerminales[i])==0)
 			{ 
 				palabraEncontrada = TRUE;
-				fprintf(archivoSalida,"%s\n",posibleTerminal);	 
+				fprintf(archivoSalida,"%s\n",listaTerminales[i]);	 
 			}
 			i++;
 		}
@@ -301,7 +301,7 @@ void RevisarPrograma(ListaPalabras* listaPalabras,char* nombreArchivoSalida)
 				if(palabraActual->Siguiente != NULL && strcmp(palabraActual->Siguiente->Contenido,"=")==0)
 				{ 
 					palabraEncontrada = TRUE;
-					fprintf(archivoSalida,"%s=\n",posibleTerminal);	 
+					fprintf(archivoSalida,"%s=\n",listaSimbolosDobles[i]);	 
 					palabraActual = palabraActual->Siguiente;	
 				}
 			}
@@ -314,7 +314,7 @@ void RevisarPrograma(ListaPalabras* listaPalabras,char* nombreArchivoSalida)
 			if(strcmp(posibleTerminal,listaSimbolosSimples[i])==0)
 			{ 
 				palabraEncontrada = TRUE;
-				fprintf(archivoSalida,"%s\n",posibleTerminal);	 
+				fprintf(archivoSalida,"%s\n",listaSimbolosSimples[i]);	 
 			}
 			i++;
 		}
